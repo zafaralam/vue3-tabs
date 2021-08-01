@@ -2,6 +2,7 @@
   "name": "tabs-example",
   "version": "0.0.0",
   "description": "A Tabs component example",
+  "license": "MIT",
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
