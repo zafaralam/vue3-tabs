@@ -8,6 +8,7 @@ import {
   toRefs,
   h,
   VNode,
+  computed,
 } from "vue";
 
 interface IProps {
@@ -40,7 +41,7 @@ export default defineComponent({
       type: String,
       default: "left",
       validator(value: string) {
-        return ["start", "end", "center"].includes(value);
+        return ["left", "start", "end", "center"].includes(value);
       },
     },
     reverse: {
@@ -83,6 +84,9 @@ export default defineComponent({
     };
 
     onMounted(() => {
+      _tabItems.value = (slots as any)
+        .default()
+        .filter((component: any) => component.type.name === "Tab");
       document.addEventListener("keydown", onTabKeyDown);
     });
 
@@ -100,11 +104,21 @@ export default defineComponent({
       if (newValue === true) reset();
     });
 
-    return () => {
-      _tabItems.value = (slots as any)
-        .default()
-        .filter((component: any) => component.type.name === "Tab");
+    const tabToDisplay = computed(() => {
+      return _tabItems.value.map((item, idx) => {
+        return h(
+          "div",
+          {
+            class: "tab",
+            style: `display: ${selectedIndex.value == idx ? "block" : "none"}`,
+          },
+          item
+        );
+      });
+      // return h("div", { class: "tab" }, _tabItems.value[selectedIndex.value]);
+    });
 
+    return () => {
       const tabList: Array<VNode> = [];
       _tabItems.value.forEach((tab: VNode, index: number) => {
         const _tabProps = tab.props as {
@@ -144,12 +158,6 @@ export default defineComponent({
         );
       });
 
-      const _tabsList = h(
-        "ul",
-        { class: `tab-list ${position.value}`, role: "tabList" },
-        tabList
-      );
-
       return h(
         "div",
         {
@@ -157,8 +165,12 @@ export default defineComponent({
           role: "tabs",
         },
         [
-          _tabsList,
-          h("div", { class: "tab" }, _tabItems.value[selectedIndex.value]),
+          h(
+            "ul",
+            { class: `tab-list ${position.value}`, role: "tabList" },
+            tabList
+          ),
+          ...tabToDisplay.value,
         ]
       );
     };
