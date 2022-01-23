@@ -6,6 +6,9 @@ import Tab from "./components/Tab.vue";
 export default defineComponent({
   name: "App",
   components: { Tabs, Tab },
+  data: () => {
+    return { dynamicTabs: [1, 2, 3] };
+  },
 });
 </script>
 <template>
@@ -18,7 +21,7 @@ export default defineComponent({
         be show at the top and the names of the tabs are derived from the title
         prop of each Tab component.
       </p>
-      <tabs>
+      <tabs class="Tab-exp1">
         <tab title="Tab 1">
           <h3>This is Tab 1</h3>
         </tab>
@@ -27,6 +30,7 @@ export default defineComponent({
         </tab>
       </tabs>
     </div>
+
     <div class="example example-2">
       <h2>Example 2</h2>
       <p>
@@ -105,7 +109,7 @@ export default defineComponent({
       </tabs>
     </div>
 
-    <div class="example example-4">
+    <div class="example example-5">
       <h2>Example 5</h2>
       <p>
         This example shows that the tab list can be shown in the center or end
@@ -133,7 +137,7 @@ export default defineComponent({
       </tabs>
     </div>
 
-    <div class="example example-4">
+    <div class="example example-6">
       <h2>Example 6</h2>
       <p>
         This example shows that the tab list can be shown in the center or end
@@ -157,6 +161,42 @@ export default defineComponent({
         </tab>
         <tab title-slot="tab2">
           <h3>This is Tab 2</h3>
+        </tab>
+      </tabs>
+    </div>
+
+    <div class="example example-7">
+      <h2>Example 7</h2>
+      <p>
+        This example shows a list of tabs generated from an array. This can be
+        used to dynamically generate the tabs
+      </p>
+      <tabs>
+        <tab v-for="(i, idx) in dynamicTabs" :key="idx" :title="`Tab ${i}`">
+          <h3>This is Tab {{ i }}</h3>
+        </tab>
+      </tabs>
+    </div>
+
+    <div class="example example-8">
+      <h2>Example 8</h2>
+      <p>
+        This example shows a list of tabs generated from an array. This can be
+        used to dynamically generate the tabs
+      </p>
+      <tabs>
+        <template v-for="(i, idx) in dynamicTabs" :key="idx">
+          <div class="tab-title" :name="`tab-exp7-${i}`">
+            <i class="ri-settings-3-fill" aria-hidden="true"></i>
+            Tab {{ i }}
+          </div>
+        </template>
+        <tab
+          v-for="(i, idx) in dynamicTabs"
+          :key="idx"
+          :title-slot="`tab-exp7-${i}`"
+        >
+          <h3>This is Tab {{ i }}</h3>
         </tab>
       </tabs>
     </div>

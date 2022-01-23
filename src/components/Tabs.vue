@@ -9,6 +9,7 @@ import {
   h,
   VNode,
   computed,
+  onBeforeUpdate,
 } from "vue";
 
 interface IProps {
@@ -61,7 +62,7 @@ export default defineComponent({
 
     const selectedIndex = ref(0);
     const tabs = ref<Array<any>>([]);
-    const _tabItems = ref([]);
+    const _tabItems = ref<any[]>([]);
 
     const onTabKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey) {
@@ -84,9 +85,7 @@ export default defineComponent({
     };
 
     onMounted(() => {
-      _tabItems.value = (slots as any)
-        .default()
-        .filter((component: any) => component.type.name === "Tab");
+      getTabItems();
       document.addEventListener("keydown", onTabKeyDown);
     });
 
@@ -103,6 +102,53 @@ export default defineComponent({
     watch(resetTabs, (newValue, oldValue) => {
       if (newValue === true) reset();
     });
+
+    onBeforeUpdate(() => {
+      getTabItems();
+    });
+
+    const getTabItems = () => {
+      _tabItems.value.splice(0, _tabItems.value.length);
+      (slots as any).default().forEach((component: any) => {
+        if (component.type.name && component.type.name === "Tab") {
+          _tabItems.value.push(component);
+        } else {
+          component.children.forEach((cComp: any) => {
+            if (cComp.type.name && cComp.type.name === "Tab") {
+              _tabItems.value.push(cComp);
+            }
+          });
+        }
+      });
+    };
+
+    const getTitleSlotContent = (titleSlot: string): any => {
+      let slotContent: any = null;
+      let shouldSkip = false;
+      (slots as any).default().forEach((item: any) => {
+        if (shouldSkip) {
+          return;
+        }
+
+        if (item.type === "template" && item.props.name === titleSlot) {
+          slotContent = item.children;
+          shouldSkip = true;
+        } else {
+          if (item.children.length) {
+            item.children.forEach((cItem: any) => {
+              if (shouldSkip) {
+                return;
+              }
+              if (cItem.props.name === titleSlot) {
+                slotContent = cItem.children;
+                shouldSkip = true;
+              }
+            });
+          }
+        }
+      });
+      return slotContent === null ? [] : slotContent;
+    };
 
     const tabToDisplay = computed(() => {
       return _tabItems.value.map((item, idx) => {
@@ -127,14 +173,8 @@ export default defineComponent({
           disabled?: boolean | string;
         };
 
-        const content = _tabProps["title-slot"]
-          ? (slots as any)
-              .default()
-              .filter(
-                (item: any) =>
-                  item.type === "template" &&
-                  item.props.name === _tabProps["title-slot"]
-              )[0].children
+        const titleContent = _tabProps["title-slot"]
+          ? getTitleSlotContent(_tabProps["title-slot"])
           : _tabProps.title;
         const isDisabled =
           _tabProps.disabled === true || _tabProps.disabled === "";
@@ -153,7 +193,7 @@ export default defineComponent({
                 switchTab(e, index, isDisabled);
               },
             },
-            content
+            titleContent
           )
         );
       });
